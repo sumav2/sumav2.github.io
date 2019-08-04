@@ -1,0 +1,295 @@
+
+
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+
+<style> rect {fill: green; stroke: none;}
+
+
+    .center {
+      text-align: center;
+    }
+
+    .pagination {
+      display: inline-block;
+    }
+
+    .pagination a {
+      color: black;
+      float: left;
+      padding: 8px 16px;
+      text-decoration: none;
+      transition: background-color .3s;
+      border: 1px solid #ddd;
+      margin: 0 4px;
+    }
+
+    .pagination a.active {
+      background-color: #4CAF50;
+      color: white;
+      border: 1px solid #4CAF50;
+    }
+
+    .pagination a:hover:not(.active) {background-color: #ddd;}
+
+    .tooltip {
+        position: absolute;
+        z-index: 10;
+        visibility: hidden;
+        background-color: lightgreen;
+        text-align: center;
+        padding: 4px;
+        border-radius: 4px;
+        font-weight: bold;
+        color: red;
+    }
+
+    .annotation-note-title, text.title {
+      font-weight: bold;
+      color: red
+    }
+
+</style>
+
+<body onload='init()'>
+
+
+
+
+
+  <div class="container">
+  	<div class="row">
+      <div class="col-md-6">
+        <h2 align="center">Car Fuel Efficiency Data from 2017 - A Study</h2>
+        <p>
+          This is an interactive slideshow based on the the 2017 fuel efficiency details available at (<a href="https://flunky.github.io/cars2017.csv">https://flunky.github.io/cars2017.csv</a>). This narrative visualization has been created using D3 js V5.
+        </p>
+        <p align="center">
+          Study shows that electric cars perform better both on highways and city roads.
+        </p>
+        <p align='center'>
+          Click each of the tabs below to inspect individual visualizations that are part of the slide show.
+
+        </p>
+      </div>
+  	</div>
+  </div>
+
+  <div class="center">
+    <div class="pagination">
+
+      <a href="index.html">Data Overview</a>
+      <a href="scene1.html" class="active">Fuel Type and Mileage</a>
+      <a href="scene2.html">Cylinder Number and Mileage</a>
+      <a href="scene3.html">Better Make for Each Cylinder Number</a>
+
+
+    </div>
+  </div>
+
+<svg width=900 height=700>
+</svg>
+<script>
+  async function init()
+{
+
+await d3.csv("https://flunky.github.io/cars2017.csv").then (function(csv)
+{
+
+var dataF = d3.nest()
+  .key(function(d) { return d.Fuel; })
+  .rollup(function(v) { return {
+    count: v.length,
+    avg: d3.mean(v, function(d) { return d.AverageCityMPG; }),
+    avgH: d3.mean(v, function(d) { return d.AverageHighwayMPG; })
+  }; })
+  .entries(csv);
+
+    console.log(dataF)
+
+  console.log(dataF[1].value.avg)
+  console.log(dataF[1].value.avgH)
+
+var avgArr = [];
+  var avgHArr = [];
+  var countArr = [];
+
+for (let i = 0; i < dataF.length; i++) {
+  countArr.push(dataF[i].value.count);
+  avgArr.push(dataF[i].value.avg);
+  avgHArr.push(dataF[i].value.avgH);
+}
+
+console.log(avgArr)
+console.log(countArr)
+
+var margin = 50;
+var width =400;
+var height = 400;
+
+//var data = [4,8,15,16,23,42];
+
+var x = d3.scaleBand()
+    .domain([0,1,2])
+	.range([0, width])
+  .padding(0.3);
+
+var y = d3.scaleLinear()
+	.domain([0,120])
+    .range([height,0]);
+
+var xh = d3.scaleBand()
+    .domain([0,1,2])
+	.range([0, width])
+  .padding(0.3);
+
+var yh = d3.scaleLinear()
+	.domain([0,120])
+    .range([height,0]);
+
+
+d3.select("svg")
+    .attr('width',width + 2*margin)
+    .attr('height',height + 2*margin)
+    .append('g')
+    .attr('transform',"translate(" + margin + "," + margin+ ")")
+.selectAll("rect")
+	.data(avgArr)
+    .enter()
+    .append('rect')
+      .attr('x',function(d,i) { return x(i)+36; })
+      .attr('y',function(d) { return y(d); })
+      .attr('width',x.bandwidth()-50)
+      .attr('height',.5)
+      .transition()
+    .duration(2000)
+    .attr('opacity',.75)
+    .attr('height',function(d) { return   height-y(d); });
+
+  d3.select("svg")
+    .attr('width',width + 2*margin)
+    .attr('height',height + 2*margin)
+    .append('g')
+    .attr('transform',"translate(" + margin + "," + margin+ ")")
+.selectAll("rect")
+	.data(avgHArr)
+    .enter()
+    .append('rect')
+      .attr('x',function(d,i) { return xh(i); })
+      .attr('y',function(d) { return yh(d); })
+      .attr('width',xh.bandwidth()-50)
+      .attr('height',.5)
+       .style("fill","pink")
+      .transition()
+    .duration(2000)
+    .attr('height',function(d) { return   height-yh(d); });
+
+
+d3.select('svg').append("g")
+.attr("transform", "translate(" +(margin) + "," + (margin) + ")")
+.call(d3.axisLeft(y))
+.attr("text-anchor", "end") ;
+
+
+d3.select('svg').append("g")
+.attr("transform", "translate(" +margin + "," + (margin+height) + ")")
+.call(d3.axisBottom(x))
+.attr("text-anchor", "middle");
+
+// text label for the x axis
+d3.select("svg").append("text")
+    .attr("transform",
+          "translate(250,480)")
+    .style("text-anchor", "middle")
+    .text("Fuel Type");
+// text label for the y axis
+d3.select("svg").append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0)
+    .attr("x",0 - 300)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Avg MPG Across All Analyzed Vehicles");
+
+    }
+    );
+
+// Handmade legend
+d3.select("svg").append("circle")
+  .attr("cx",80).attr("cy",90).attr("r", 10)
+.style("fill", "green")
+.style("stroke", "grey")
+.attr('opacity',.75);
+
+d3.select("svg").append("text")
+  .attr("x", 100).attr("y", 90)
+  .text("City").style("font-size", "15px")
+  .attr("alignment-baseline","middle")
+  .attr('fill','grey');
+
+d3.select("svg").append("circle")
+  .attr("cx",80).attr("cy",120).attr("r", 10)
+.style("fill", "pink")
+  .style("stroke", "grey")
+.attr('opacity',.75);
+
+d3.select("svg").append("text")
+  .attr("x", 100).attr("y", 120)
+  .text("Highway").style("font-size", "15px")
+  .attr("alignment-baseline","middle")
+  .attr('fill','grey');
+
+d3.select("svg").append("text")
+  .attr("x", 92).attr("y", 350)
+  .text("Gasoline").style("font-size", "15px")
+  .attr("alignment-baseline","middle")
+  .attr('fill','grey');
+
+d3.select("svg").append("text")
+  .attr("x", 220).attr("y", 330)
+  .text("Diesel").style("font-size", "15px")
+  .attr("alignment-baseline","middle")
+  .attr('fill','grey');
+
+d3.select("svg").append("text")
+  .attr("x", 329).attr("y", 35)
+  .text("Electricity").style("font-size", "15px")
+  .attr("alignment-baseline","middle")
+  .attr('fill','grey');
+
+  var annotations =
+    [
+    {
+              note: {
+                label: "High MPG in City than Highways",
+                wrap: 80,
+                align: "top"
+              },
+              connector: {
+                end: "arrow" // 'dot' also available
+              },
+              x: 400,
+              y: 80,
+              dy: 20,
+              dx: 20
+            }
+
+    ]
+
+
+    var makeAnnotations = d3.annotation()
+        .type(d3.annotationLabel)
+        .annotations(annotations);
+
+    d3.select('svg').append('g')
+        .attr('class', 'temperature-annotation-group')
+        .call(makeAnnotations);
+
+
+
+}
+</script>
+
+
+</body></html>

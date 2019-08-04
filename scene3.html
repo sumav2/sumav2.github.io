@@ -1,0 +1,244 @@
+
+
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+
+<style> circle {fill: green; stroke: pink;}
+
+
+    .center {
+      text-align: center;
+    }
+
+    .pagination {
+      display: inline-block;
+    }
+
+    .pagination a {
+      color: black;
+      float: left;
+      padding: 8px 16px;
+      text-decoration: none;
+      transition: background-color .3s;
+      border: 1px solid #ddd;
+      margin: 0 4px;
+    }
+
+    .pagination a.active {
+      background-color: #4CAF50;
+      color: white;
+      border: 1px solid #4CAF50;
+    }
+
+    .pagination a:hover:not(.active) {background-color: #ddd;}
+
+    .tooltip {
+        position: absolute;
+        z-index: 10;
+        visibility: hidden;
+        background-color: lightgreen;
+        text-align: center;
+        padding: 4px;
+        border-radius: 4px;
+        font-weight: bold;
+        color: red;
+    }
+
+    .annotation-note-title, text.title {
+      font-weight: bold;
+      color: red
+    }
+
+    #filter{
+    	position:absolute;
+    	top:210px;
+    	left:550px;
+    }
+
+</style>
+
+<body onload='init()'>
+
+    <div class="container">
+    	<div class="row">
+        <div class="col-md-6">
+          <h2 align="center">Car Fuel Efficiency Data from 2017 - A Study</h2>
+          <p>
+            This is an interactive slideshow based on the the 2017 fuel efficiency details available at (<a href="https://flunky.github.io/cars2017.csv">https://flunky.github.io/cars2017.csv</a>). This narrative visualization has been created using D3 js V5.
+          </p>
+          <p align="center">
+            Study shows that electric cars perform better both on highways and city roads.
+          </p>
+          <p align='center'>
+            Click each of the tabs below to inspect individual visualizations that are part of the slide show.
+
+          </p>
+        </div>
+    	</div>
+    </div>
+
+    <div class="center">
+      <div class="pagination">
+
+        <a href="index.html">Data Overview</a>
+        <a href="scene1.html" >Fuel Type and Mileage</a>
+        <a href="scene2.html">Cylinder Number and Mileage</a>
+        <a href="scene3.html"class="active">Better Make for Each Cylinder Number</a>
+
+
+      </div>
+    </div>
+
+  <select id="filter">
+    <option value="1">Highway</option>
+    <option value="2">City Roads</option>
+    <option value="3"selected="selected">Click to Select Road Type</option>
+  </select>
+
+<svg width=900 height=700>
+</svg>
+
+
+<script>
+
+
+
+async function init()
+{
+
+data = await d3.csv('https://flunky.github.io/cars2017.csv');
+
+            console.log(data);
+
+              d3.select("#filter").on("change", function() {
+
+              applyFilter(this.value,data);
+
+              });
+
+          function applyFilter(value,data) {
+
+           console.log(value);
+           d3.select("g").remove();
+
+           var margin = 50;
+         var width = 400;
+         var height = 400 ;
+
+
+
+         var xScale = d3.scaleLinear()
+         .domain([0,15])
+         .range([0, width]);
+
+         var yScale = d3.scaleLinear()
+             .domain([0,150])
+           .range([height, 0]);
+
+
+
+           d3.select('svg').append('g')
+              .attr("transform", "translate(" + margin+ "," + margin + ")")
+          .selectAll("circle")
+              .data(data)
+            .enter().append("circle")
+            .attr("cx", function(d) {return xScale(d.EngineCylinders); })
+             .attr("cy", function(d) {if (value == 2){return yScale(d.AverageHighwayMPG);} else
+           {return yScale(d.AverageCityMPG);} })
+           .attr("r", .5)
+           .transition()
+         .duration(2000)
+         .attr("r", function(d) {return 4; });
+
+         d3.select('svg').append("g")
+         .attr("transform", "translate(" +(margin) + "," + (margin) + ")")
+         .call(d3.axisLeft(yScale).tickValues([5,10,20,30,40,50,100,150]).tickFormat(d3.format("~s")))
+         .attr("text-anchor", "end") ;
+
+         d3.select('svg').append("g")
+         .attr("transform", "translate(" +margin + "," + (margin+height) + ")")
+         .call(d3.axisBottom(xScale).tickValues([0,2,4,6,8,10,12,14]).tickFormat(d3.format("~s")))
+         .attr("text-anchor", "end") ;
+         // text label for the x axis
+
+
+         // text label for the x axis
+         d3.select("svg").append("text")
+             .attr("transform",
+                   "translate(250,480)")
+             .style("text-anchor", "middle")
+             .text("Number of Engine Cylinders");
+         // text label for the y axis
+         d3.select("svg").append("text")
+             .attr("transform", "rotate(-90)")
+             .attr("y", 0)
+             .attr("x",0 - 300)
+             .attr("dy", "1em")
+             .style("text-anchor", "middle")
+             .text("Avg MPG");
+
+             var tooltip = d3.select("body")
+               .append("div")
+               .attr('class', 'tooltip');
+
+
+               d3.selectAll("circle")
+                 .data(data)
+                 .on("mouseover", function(d) {
+             return tooltip.style("visibility", "visible").text(d.Make + ', Fuel- '+d.Fuel );
+           })
+
+           // we move tooltip during of "mousemove"
+
+           .on("mousemove", function() {
+             return tooltip.style("top", (event.pageY - 30) + "px")
+               .style("left", event.pageX + "px");
+           })
+
+           // we hide our tooltip on "mouseout"
+
+           .on("mouseout", function() {
+             return tooltip.style("visibility", "hidden");
+           });
+
+
+
+           var annotations =
+             [
+             {
+                       note: {
+                         label: "Hover over the top most dot for each engine cylinder type to see which are the cars that perform best for any selected cylinder number and road type(City/Highway)",
+                         wrap: 250,
+                         align: "left"
+                       },
+                       connector: {
+                         end: "arrow" // 'dot' also available
+                       },
+                       x: 320,
+                       y: 240,
+                       dy: 45,
+                       dx: 120
+                     }
+
+             ]
+
+
+
+             var makeAnnotations = d3.annotation()
+                 .type(d3.annotationLabel)
+                 .annotations(annotations)
+
+             d3.select('svg').append('g')
+                 .attr('class', 'temperature-annotation-group')
+                 .call(makeAnnotations)
+
+
+}
+
+
+}
+
+</script>
+</body>
+</html>

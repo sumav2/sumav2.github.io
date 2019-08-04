@@ -1,0 +1,76 @@
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+
+<style>
+  .center {
+    text-align: center;
+  }
+
+  .pagination {
+    display: inline-block;
+  }
+
+  .pagination a {
+    color: black;
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color .3s;
+    border: 1px solid #ddd;
+    margin: 0 4px;
+  }
+
+  .pagination a.active {
+    background-color: #4CAF50;
+    color: white;
+    border: 1px solid #4CAF50;
+  }
+
+  .pagination a:hover:not(.active) {background-color: #ddd;}
+
+  </style>
+
+<body>
+  <br>
+  <br>
+  <h1 align="center">Car Fuel Efficiency Data from 2017 - A Study</h1>
+
+  <br>
+  <br>  <div class="center">
+    <div class="pagination">
+
+    <a href="index.html" class="active">Data Overview</a>
+    <a href="scene1.html">Fuel Type and Mileage</a>
+    <a href="scene2.html">Cylinder Number and Mileage</a>
+    <a href="scene3.html">Better Make for Each Cylinder Number</a>
+
+    </div>
+  </div>
+
+
+<br>
+<br>
+<br>
+<br>
+
+<div class="container">
+	<div class="row">
+    <div class="col-md-10">
+      <p>
+        This is an interactive slideshow based on the the 2017 fuel efficiency details available at (<a href="https://flunky.github.io/cars2017.csv">https://flunky.github.io/cars2017.csv</a>). This narrative visualization has been created using D3 js V5.
+      </p>
+      <br><br>
+      <p align="center">
+        Study shows that electric cars perform better both on highways and city roads.
+      </p>
+      <br><br>
+      <p align='center'>
+        Click each of the tabs above to inspect individual visualizations that are part of the slide show.
+
+      </p>
+    </div>
+	</div>
+</div>
+
+</body>
+</html>
